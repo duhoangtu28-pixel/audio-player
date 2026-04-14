@@ -1,10 +1,218 @@
 <!DOCTYPE html>
-<html>
-<body style="text-align:center;margin-top:50px">
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình phát nhạc của tớ</title>
+    <style>
+        /* Phong cách tổng thể: Hiện đại, sạch sẽ, màu sắc pastel thân thiện */
+        * {
+            box-sizing: border-radius;
+            margin: 0;
+            padding: 0;
+        }
 
-<audio autoplay loop controls>
-  <source src="https://drive.google.com/file/d/18etDFIMlWSOx6MtWmzg2Z7MZJnFhYRi4/view?usp=sharing" type="audio/mpeg">
-</audio>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; /* Màu nền nhẹ nhàng */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
 
+        /* Container chính cho trình phát nhạc */
+        .player-container {
+            background-color: #ffffff;
+            width: 350px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Đổ bóng mềm */
+            text-align: center;
+            border: 2px solid #a3cfbb; /* Viền màu xanh pastel nhẹ */
+        }
+
+        /* Phần tiêu đề */
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .music-icon {
+            font-size: 3em;
+            color: #f8bbd0; /* Màu hồng pastel */
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            color: #555;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Khu vực điều khiển */
+        .controls-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .play-btn {
+            background-color: #f8bbd0; /* Màu hồng pastel */
+            border: none;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%; /* Nút tròn */
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(248, 187, 208, 0.5); /* Đổ bóng nút */
+            transition: all 0.3s ease; /* Hiệu ứng mượt mà */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05); /* Phóng to nhẹ khi di chuột */
+            box-shadow: 0 6px 15px rgba(248, 187, 208, 0.6);
+        }
+
+        /* Biểu tượng phát và tạm dừng */
+        #playIcon, #pauseIcon {
+            font-size: 2.5em;
+            color: #ffffff;
+            position: absolute;
+            transition: opacity 0.2s ease;
+        }
+
+        #pauseIcon {
+            opacity: 0; /* Ẩn nút pause ban đầu */
+        }
+
+        /* Khu vực thanh tiến trình */
+        .progress-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        /* Thanh trượt (slider) */
+        input[type="range"] {
+            flex-grow: 1;
+            margin: 0 15px;
+            cursor: pointer;
+            accent-color: #f8bbd0; /* Màu của thanh trượt */
+        }
+
+        /* File nhạc ẩn */
+        #myAudio {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="player-container">
+        <div class="header">
+            <span class="music-icon">🎵</span>
+            <h2>Bài Nhạc Của Tớ</h2>
+        </div>
+
+        <div class="controls-area">
+            <button id="playPauseBtn" class="play-btn">
+                <span id="playIcon">▶</span>
+                <span id="pauseIcon">❚❚</span>
+            </button>
+        </div>
+
+        <div class="progress-area">
+            <span id="currentTime">0:00</span>
+            <input type="range" id="progressSlider" value="0" min="0">
+            <span id="totalDuration">0:00</span>
+        </div>
+
+        <audio id="myAudio" src="Music.mp3" preload="metadata"></audio>
+    </div>
+
+    <script>
+        // Lấy các phần tử HTML
+        const audio = document.getElementById('myAudio');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const slider = document.getElementById('progressSlider');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalDurationEl = document.getElementById('totalDuration');
+
+        // Hàm định dạng thời gian (ví dụ: 125 giây -> 2:05)
+        function formatTime(seconds) {
+            let minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            if (seconds < 10) seconds = "0" + seconds;
+            return minutes + ":" + seconds;
+        }
+
+        // 1. Xử lý sự kiện nhấn nút Play/Pause
+        playPauseBtn.addEventListener('click', function() {
+            if (audio.paused) {
+                audio.play(); // Phát nhạc
+            } else {
+                audio.pause(); // Tạm dừng
+            }
+        });
+
+        // 2. Cập nhật giao diện khi nhạc phát/tạm dừng
+        audio.addEventListener('play', function() {
+            playIcon.style.opacity = '0'; // Ẩn nút play
+            pauseIcon.style.opacity = '1'; // Hiện nút pause
+        });
+
+        audio.addEventListener('pause', function() {
+            playIcon.style.opacity = '1'; // Hiện nút play
+            pauseIcon.style.opacity = '0'; // Ẩn nút pause
+        });
+
+        // 3. Cập nhật thanh tiến trình khi nhạc đang phát
+        audio.addEventListener('timeupdate', function() {
+            if (audio.duration) {
+                // Cập nhật vị trí thanh trượt
+                slider.value = audio.currentTime;
+                // Cập nhật thời gian hiện tại
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            }
+        });
+
+        // 4. Cập nhật thời lượng tổng khi file nhạc được tải xong
+        audio.addEventListener('loadedmetadata', function() {
+            slider.max = audio.duration; // Đặt giá trị tối đa cho thanh trượt
+            totalDurationEl.textContent = formatTime(audio.duration); // Hiện tổng thời gian
+        });
+
+        // 5. Xử lý sự kiện khi người dùng kéo thanh trượt
+        slider.addEventListener('input', function() {
+            audio.currentTime = slider.value; // Chuyển đến vị trí mới
+        });
+
+        // 6. Xử lý khi nhạc kết thúc
+        audio.addEventListener('ended', function() {
+            // Tự động chuyển về trạng thái dừng
+            playIcon.style.opacity = '1';
+            pauseIcon.style.opacity = '0';
+            slider.value = 0;
+            currentTimeEl.textContent = formatTime(0);
+        });
+
+        // Xử lý lỗi tự động phát bị chặn (nếu có)
+        audio.play().catch(error => {
+            console.log("Tự động phát bị chặn. Người dùng cần bấm nút Play.");
+        });
+
+    </script>
 </body>
 </html>
