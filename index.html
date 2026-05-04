@@ -3,48 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nghe phát âm</title>
+<title>Học phát âm</title>
 
 <style>
 body {
-    font-family: Arial;
-    background: #f0f4f8;
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
-.box {
+/* Card chính */
+.card {
+    width: 320px;
     background: white;
-    padding: 30px;
-    border-radius: 20px;
+    border-radius: 25px;
+    padding: 25px;
     text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
 }
 
-button {
-    font-size: 30px;
-    padding: 20px;
+/* Icon */
+.icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+/* Tiêu đề */
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.sub {
+    color: #888;
+    margin-bottom: 20px;
+}
+
+/* Nút play */
+.play-btn {
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
     border-radius: 50%;
-    border: none;
-    background: pink;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
     cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    transition: 0.2s;
+}
+
+.play-btn:hover {
+    transform: scale(1.1);
+}
+
+.play-btn span {
+    font-size: 40px;
+    color: white;
+}
+
+/* Thanh progress */
+.progress {
+    margin-top: 25px;
+}
+
+input[type=range] {
+    width: 100%;
+    accent-color: #ff9a9e;
+}
+
+.time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #666;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-    <h2 id="title">Đang tải...</h2>
-    <button onclick="play()">▶</button>
-    <br><br>
+<div class="card">
+    <div class="icon">🎧</div>
+    <div class="title" id="title">Đang tải...</div>
+    <div class="sub">Tap để nghe phát âm</div>
+
+    <div class="play-btn" onclick="togglePlay()">
+        <span id="icon">▶</span>
+    </div>
+
+    <div class="progress">
+        <input type="range" id="slider" value="0">
+        <div class="time">
+            <span id="current">0:00</span>
+            <span id="total">0:00</span>
+        </div>
+    </div>
+
     <audio id="audio"></audio>
 </div>
 
 <script>
-// Lấy số câu từ URL (?file=01)
+const audio = document.getElementById("audio");
+const icon = document.getElementById("icon");
+const slider = document.getElementById("slider");
+const current = document.getElementById("current");
+const total = document.getElementById("total");
+
+// Lấy câu từ QR (?file=01)
 const params = new URLSearchParams(window.location.search);
 let file = params.get("file") || "01";
 
@@ -52,13 +124,51 @@ let file = params.get("file") || "01";
 document.getElementById("title").innerText = "Câu " + file;
 
 // Link audio (CHUẨN)
-const audio = document.getElementById("audio");
 audio.src = `https://raw.githubusercontent.com/duhoangtu28-pixel/audio-player/main/${file}-Sound%20${file}.wav`;
 
-// Nút play
-function play() {
-    audio.play();
+// Format time
+function formatTime(s) {
+    let m = Math.floor(s / 60);
+    let sec = Math.floor(s % 60);
+    if (sec < 10) sec = "0" + sec;
+    return m + ":" + sec;
 }
+
+// Play / Pause
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+    } else {
+        audio.pause();
+    }
+}
+
+// Update icon
+audio.onplay = () => icon.innerText = "❚❚";
+audio.onpause = () => icon.innerText = "▶";
+
+// Load duration
+audio.onloadedmetadata = () => {
+    slider.max = audio.duration;
+    total.innerText = formatTime(audio.duration);
+};
+
+// Update progress
+audio.ontimeupdate = () => {
+    slider.value = audio.currentTime;
+    current.innerText = formatTime(audio.currentTime);
+};
+
+// Seek
+slider.oninput = () => {
+    audio.currentTime = slider.value;
+};
+
+// End
+audio.onended = () => {
+    icon.innerText = "▶";
+    slider.value = 0;
+};
 </script>
 
 </body>
