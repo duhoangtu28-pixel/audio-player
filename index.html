@@ -6,26 +6,36 @@
 <title>Học Tiếng Anh</title>
 
 <style>
-body {
+body{
     font-family: Arial;
-    background: linear-gradient(135deg, #74ebd5, #acb6e5);
-    height: 100vh;
+    background: linear-gradient(135deg,#6dd5ed,#2193b0);
+    height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
+    color:#333;
 }
 
-.box {
-    background:#fff;
-    padding:30px;
+.app{
+    width:320px;
+    background:white;
+    padding:25px;
     border-radius:20px;
     text-align:center;
-    width:300px;
     box-shadow:0 10px 30px rgba(0,0,0,0.2);
 }
 
-button {
-    margin-top:20px;
+h2{
+    margin-bottom:10px;
+}
+
+.sub{
+    font-size:13px;
+    color:#777;
+}
+
+.play-btn{
+    margin:20px auto;
     width:80px;
     height:80px;
     border-radius:50%;
@@ -35,14 +45,47 @@ button {
     color:white;
     cursor:pointer;
 }
+
+.controls{
+    display:flex;
+    justify-content:space-between;
+    margin-top:15px;
+}
+
+.btn{
+    flex:1;
+    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#eee;
+    cursor:pointer;
+}
+
+.active{
+    background:#ff7eb3;
+    color:white;
+}
 </style>
 </head>
 
 <body>
 
-<div class="box">
-    <h2>🔊 Nghe câu</h2>
-    <button onclick="toggle()">▶</button>
+<div class="app">
+    <h2 id="title">Câu 01</h2>
+    <div class="sub">Tap để nghe phát âm</div>
+
+    <button class="play-btn" onclick="toggle()">▶</button>
+
+    <div class="controls">
+        <button class="btn" onclick="prev()">⏮</button>
+        <button class="btn" onclick="next()">⏭</button>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="autoBtn" onclick="toggleAuto()">Auto</button>
+        <button class="btn" id="repeatBtn" onclick="toggleRepeat()">Repeat</button>
+    </div>
 </div>
 
 <audio id="audio"></audio>
@@ -50,24 +93,86 @@ button {
 <script>
 const audio = document.getElementById("audio");
 
-// 👉 Lấy link từ URL (?file=...)
+// ===== LIST FILE =====
+let list = [
+"01-Sound%2001.wav",
+"02-Sound%2002.wav",
+"03-Sound%2003.wav",
+"04-Sound%2004.wav",
+"05-Sound%2005.wav"
+];
+
+let index = 0;
+let auto = false;
+let repeat = false;
+
+// ===== LẤY FILE TỪ QR =====
 const params = new URLSearchParams(window.location.search);
 const file = params.get("file");
 
-// 👉 Nếu có file thì gán
 if(file){
-    audio.src = file;
-}else{
-    alert("Thiếu file audio!");
+    index = list.indexOf(file);
+    if(index === -1){
+        list.unshift(file);
+        index = 0;
+    }
 }
 
+// ===== LOAD FILE =====
+function load(){
+    audio.src = list[index];
+    document.getElementById("title").innerText = "Câu " + (index+1);
+}
+
+load();
+
+// ===== PLAY =====
 function toggle(){
     if(audio.paused){
+        audio.currentTime = 0;
         audio.play();
     }else{
         audio.pause();
     }
 }
+
+// ===== NEXT =====
+function next(){
+    index++;
+    if(index >= list.length) index = 0;
+    load();
+    audio.play();
+}
+
+// ===== PREV =====
+function prev(){
+    index--;
+    if(index < 0) index = list.length-1;
+    load();
+    audio.play();
+}
+
+// ===== AUTO =====
+function toggleAuto(){
+    auto = !auto;
+    document.getElementById("autoBtn").classList.toggle("active");
+}
+
+// ===== REPEAT =====
+function toggleRepeat(){
+    repeat = !repeat;
+    document.getElementById("repeatBtn").classList.toggle("active");
+}
+
+// ===== KHI KẾT THÚC =====
+audio.addEventListener("ended", ()=>{
+    if(repeat){
+        audio.currentTime = 0;
+        audio.play();
+    }else if(auto){
+        next();
+    }
+});
 </script>
 
 </body>
